@@ -1,0 +1,38 @@
+
+
+<section class="people container">
+
+  <div class="row people__border align-items-center bg-9d6 no-gutters pt-3 pb-3 text-white fz-22">
+    <div class="col"><h5 class="people__text">ФИО</h5></div>
+    <div class="col"><h5 class="people__text">Диагноз</h5></div>
+    <div class="col"><h5 class="people__text">Дата регистрации</h5></div>
+    <div class="col"><h5 class="people__text">Статус</h5></div>
+    <div class="col"><h5 class="people__text">Комментарий</h5></div>
+    <div class="col"><h5 class="people__text"></h5></div>
+  </div>
+
+
+  {% for patient in patients %}
+
+    <div class="row list__border align-items-center {% if patient.important %} bg-priority {% else %} bg-4f4 {% endif %} no-gutters pt-1 pb-1 text-dark fz-17 border-bottom border-dark">
+      <div class="col"><h6 class="people__text">
+        <a href="{% url 'edit_patient' patient_id=patient.id %}">{{ patient.name }}</a>
+      </h6></div>
+      <div class="col"><h6 class="people__text">{{ patient.diagnosis }}</h6></div>
+      <div class="col"><h6 class="people__text">{{ patient.created_at|date:"d.m.Y" }}</h6></div>
+      <div class="col"><h6 class="people__text">{{ patient.status.title }}</h6></div>
+      <div class="col"><h6 class="people__text">{{ patient.comment }}</h6></div>
+      <div class="col">
+          <form method="post" class="select-button-form" action="/room/distribution/">
+              {% csrf_token %}
+              <input type="hidden" name="position_id" value="{{ position.id }}">
+              <input type="hidden" name="patient_id" value="{{ patient.id }}">
+
+              <input type="submit" value="Выбрать" class="btn btn-secondary">
+          </form>
+      </div>
+    </div>
+
+  {% endfor %}
+
+</section>

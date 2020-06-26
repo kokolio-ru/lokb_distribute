@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+
+    {% load static %}
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
+    <link rel="stylesheet" href='{% static "/css/style.css" %}' />
+
+    <title>{{ room.title }}</title>
+  </head>
+  <body>
+    <header class="header header__room container">
+      <div class="row align-items-center">
+        <div class="col">
+          <a class="header__logo" href="https://www.oblmed.spb.ru/">
+            <img src="../../static/assets/img/logo.png" alt="Лого" />
+          </a>
+        </div>
+        <div class="col">
+          <h1 class="header__title text-center">{{ room.title }}</h1>
+        </div>
+        <div class="col">
+          <a href="/" class="btn header__button">Очередь</a>
+          <a href="/logout/" class="btn header__button">Выйти</a>
+        </div>
+      </div>
+    </header>
+
+    <section class="container">
+      <div class="row justify-content-center align-items-center">
+
+        {% for position in positions %}
+          <div class="col-4 mb-5 text-center">
+            <h3 class="bed__title">{{ position.title }}</h3>
+            {% if position.patient is None %}
+              <div class="status d-flex align-items-center justify-content-center">
+                <div class="status__indicator status-active"></div>
+                <p class="status__bed">Свободна</p>
+              </div>
+            {% else %}
+              <div class="status d-flex align-items-center justify-content-center">
+                <div class="status__indicator status-inactive"></div>
+                <p class="status__bed">{{ position.patient.name }}</p>
+              </div>
+            {% endif %}
+              {% if position.patient is None %}
+                <a href="/modal/?position_id={{position.id}}" data-toggle="modal" data-target="#modal__info_{{position.id}}"  class="distribute-table-link">
+                  <img src="../../static/assets/img/bed.svg" alt="Место"/>
+                </a>
+              {% else %}
+                <a href="" data-toggle="modal" data-target="#modal__info_{{position.id}}">
+                  <img src="../../static/assets/img/bed_busy.svg" alt="Место"/>
+                </a>
+            {% endif %}
+
+
+          </div>
+        {% endfor %}
+
+      </div>
+    </section>
+
+    <!-- Модальное окно "Информация о пациенте" -->
+
+    {% for position in positions %}
+
+      {% if position.patient %}
+        <div class="modal fade" id="modal__info_{{ position.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">{{ position.title }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <h5 class="modal__title">{{ position.patient.name }}</h5>
+                <form id="form_position_{{ position.id }}" action="/position/{{ position.id }}/comment/" method="post">
+                  <div class="row mb-2">
+                    <div class="col">
+                      <span class="modal__text"><b>Диагноз:</b> {{ position.patient.diagnosis }}</span>
+                    </div>
+                  </div>
+                  <div class="row mb-2">
+                    <div class="col">
+                      <span class="modal__text"><b>Дата поступления:</b> {{ position.patient.created_at|date:"d.m.Y" }}</span>
+                    </div>
+                  </div>
+                  <div class="row mb-2">
+                    <div class="col">
+                      <span class="modal__text"><b>Статус:</b> {{ position.patient.status.title }}</span>
+                    </div>
+                  </div>
+                  <div class="row mb-2">
+                    <div class="col">
+                      <label for="comment_{{ position.id }}" class="modal__text"><b>Комментарий:</b> </label>
+                    </div>
+                  </div>
+                  <div class="row mb-2">
+                    <div class="col">
+
+                        {% csrf_token %}
+                        <textarea class="comment" name="comment" id="comment_{{ position.id }}" cols="60" rows="5">{% if position.patient.doctor_comment %}{{ position.patient.doctor_comment }}{% endif %}</textarea>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <form method="post" action="/delete/{{ position.id }}/">
+                  {% csrf_token %}
+                  <input type="submit" class="btn btn-secondary" value="Выписать">
+                </form>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="modal fade" id="modal__info_{{ position.id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog " style="max-width: 1000px">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">{{ position.title }} - распределение пациента</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              </div>
+              <div class="modal-body">
+                ...
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+
+
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+    <script src='{% static "js/script.js" %}'></script>
+  </body>
+</html>
